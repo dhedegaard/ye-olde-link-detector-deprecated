@@ -9,6 +9,7 @@ import {
   Message,
   Permissions,
   sendMessage,
+  formatDistance,
 } from "./deps.ts";
 import { findUrlsInMessage } from "./url-regex.ts";
 
@@ -95,7 +96,11 @@ const processMessage = (
           urlData.length
         }** time(s) before. 🚨🚨🚨 It was first posted by **${
           firstPost.username
-        }** on **${firstPost.timestamp.toLocaleDateString()}**`,
+        }**, **${formatDistance(
+          new Date(),
+          firstPost.timestamp,
+          undefined
+        )}** ago`,
         mentions: {
           parse: ["everyone"],
           users: [userid],
