@@ -9,10 +9,8 @@ import {
   Intents,
   Permissions,
   sendMessage,
-  formatDistance,
 } from "./deps.ts";
 import { processMessage } from "./process-message.ts";
-import { findUrlsInMessage } from "./url-regex.ts";
 
 const token = Deno.env.get("TOKEN");
 if (token == null) {
