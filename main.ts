@@ -1,16 +1,16 @@
 import {
+  botHasChannelPermissions,
+  Channel,
+  ChannelTypes,
+  createClient,
   getMessages,
+  Guild,
+  Intents,
+  Message,
+  Permissions,
   sendMessage,
-} from "https://deno.land/x/discordeno@v8.4.1/src/handlers/channel.ts";
-import { Channel } from "https://deno.land/x/discordeno@v8.4.1/src/structures/channel.ts";
-import { Intents } from "https://deno.land/x/discordeno@v8.4.1/src/types/options.ts";
-import { ChannelTypes } from "https://deno.land/x/discordeno@v8.4.1/src/types/channel.ts";
+} from "./deps.ts";
 import { findUrlsInMessage } from "./url-regex.ts";
-import { botHasChannelPermissions } from "https://deno.land/x/discordeno@v8.4.1/src/utils/permissions.ts";
-import { Permissions } from "https://deno.land/x/discordeno@v8.4.1/src/types/permission.ts";
-import { Guild } from "https://deno.land/x/discordeno@v8.4.1/src/structures/guild.ts";
-import createClient from "https://deno.land/x/discordeno@v8.4.1/src/module/client.ts";
-import { Message } from "https://deno.land/x/discordeno@v8.4.1/src/structures/message.ts";
 
 const token = Deno.env.get("TOKEN");
 if (token == null) {
@@ -51,6 +51,9 @@ await createClient({
     },
     guildLoaded(guild) {
       processChannelsForGuildLoaded(guild);
+    },
+    heartbeat() {
+      console.log("heartbeat");
     },
   },
 });
