@@ -10,6 +10,7 @@ import {
   Permissions,
   sendMessage,
 } from "./deps.ts";
+import { formatOutputMessage } from "./formatter.ts";
 import { processMessage } from "./process-message.ts";
 
 const token = Deno.env.get("TOKEN");
@@ -28,7 +29,7 @@ await createClient({
     messageCreate(message) {
       for (const messageToSend of processMessage(message)) {
         sendMessage(message.channel, {
-          content: messageToSend,
+          content: formatOutputMessage(messageToSend),
         });
       }
     },
