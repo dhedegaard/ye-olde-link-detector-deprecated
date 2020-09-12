@@ -26,10 +26,7 @@ const data: Data = {
 
 /** Clears the data object, usually only needed for testing. */
 export const clearData = () => {
-  for (const key of Object.keys(data)) {
-    delete (data as { [key: string]: unknown })[key];
-    data.guilds = {};
-  }
+  data.guilds = {};
 };
 
 export const getGuildData = (guildId: string): GuildData => {
