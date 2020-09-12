@@ -5,15 +5,7 @@ import {
 import { processMessage } from "../process-message.ts";
 import { Message } from "../deps.ts";
 import { ChannelTypes } from "https://deno.land/x/discordeno@v8.4.1/src/types/channel.ts";
-import { data } from "../data.ts";
-
-/** Clears the data object, for testing. */
-const clearData = () => {
-  for (const key of Object.keys(data)) {
-    delete (data as { [key: string]: unknown })[key];
-    data.guilds = {};
-  }
-};
+import { clearData, getGuildData } from "../data.ts";
 
 const fakeMessage: Message = {
   id: "test-id",
@@ -94,20 +86,16 @@ Deno.test(
       }),
       []
     );
-    assertEquals(data, {
-      guilds: {
-        "guild-id": {
-          urls: {
-            "http://example.com": [
-              {
-                messageid: fakeMessage.id,
-                timestamp: new Date(fakeMessage.timestamp),
-                userid: "user-id",
-                username: "fake-username",
-              },
-            ],
+    assertEquals(getGuildData("guild-id"), {
+      urls: {
+        "http://example.com": [
+          {
+            messageid: fakeMessage.id,
+            timestamp: new Date(fakeMessage.timestamp),
+            userid: "user-id",
+            username: "fake-username",
           },
-        },
+        ],
       },
     });
   }
@@ -119,17 +107,15 @@ Deno.test(
     clearData();
     const oneYearAgo = new Date(fakeMessage.timestamp);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    data.guilds[fakeMessage.guildID] = {
-      urls: {
-        "http://example.com": [
-          {
-            messageid: "old-fake-message-id",
-            timestamp: oneYearAgo,
-            userid: "user-id",
-            username: "fake-username",
-          },
-        ],
-      },
+    getGuildData(fakeMessage.guildID).urls = {
+      "http://example.com": [
+        {
+          messageid: "old-fake-message-id",
+          timestamp: oneYearAgo,
+          userid: "user-id",
+          username: "fake-username",
+        },
+      ],
     };
 
     const result = processMessage({
@@ -143,28 +129,24 @@ Deno.test(
     assertStringContains(result[0], "**1** time(s) before");
     assertStringContains(result[0], "It was first posted by **fake-username**");
     assertStringContains(result[0], "**over 1 year** ago");
-    assertEquals(data, {
-      guilds: {
-        "guild-id": {
-          urls: {
-            "http://example.com": [
-              // The original message.
-              {
-                messageid: "old-fake-message-id",
-                timestamp: oneYearAgo,
-                userid: "user-id",
-                username: "fake-username",
-              },
-              // The new double posted message.
-              {
-                messageid: fakeMessage.id,
-                timestamp: new Date(fakeMessage.timestamp),
-                userid: "user-id",
-                username: "fake-username",
-              },
-            ],
+    assertEquals(getGuildData("guild-id"), {
+      urls: {
+        "http://example.com": [
+          // The original message.
+          {
+            messageid: "old-fake-message-id",
+            timestamp: oneYearAgo,
+            userid: "user-id",
+            username: "fake-username",
           },
-        },
+          // The new double posted message.
+          {
+            messageid: fakeMessage.id,
+            timestamp: new Date(fakeMessage.timestamp),
+            userid: "user-id",
+            username: "fake-username",
+          },
+        ],
       },
     });
   }

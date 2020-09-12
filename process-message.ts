@@ -1,4 +1,4 @@
-import { data } from "./data.ts";
+import { getGuildUrl } from "./data.ts";
 import { Message, formatDistance } from "./deps.ts";
 import { findUrlsInMessage } from "./url-regex.ts";
 
@@ -24,15 +24,8 @@ export const processMessage = ({
   if (urls.length < 1) {
     return messagesToSend;
   }
-  if (data.guilds[guildID] == null) {
-    data.guilds[guildID] = { urls: {} };
-  }
-  const guildData = data.guilds[guildID]!;
   for (const url of urls) {
-    if (guildData.urls[url] == null) {
-      guildData.urls[url] = [];
-    }
-    const urlData = guildData.urls[url]!;
+    const urlData = getGuildUrl(guildID, url);
     // If the URL has already been sent, notify the caller.
     if (urlData.length > 0) {
       const firstPost = urlData.sort(

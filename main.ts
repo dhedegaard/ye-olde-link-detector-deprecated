@@ -1,4 +1,4 @@
-import { data } from "./data.ts";
+import { getGuildData } from "./data.ts";
 import {
   botHasChannelPermissions,
   Channel,
@@ -42,9 +42,6 @@ await createClient({
 });
 
 const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
-  if (data.guilds[id] == null) {
-    data.guilds[id] = { urls: {} };
-  }
   console.log(`  Processing guild: ${name} (${id})`);
   for (const [channelId, channel] of channels) {
     // Make sure it's a text channel, and that we have the required permissions.
@@ -86,7 +83,7 @@ const processMessagesForChannel = async (
   const earliestMessage = messages.sort((a, b) => a.timestamp - b.timestamp)[0];
   console.log(
     `    Now processed channel(${channel.name}) messages. URLs found: ${
-      Object.keys(data.guilds[guildId]?.urls ?? {}).length ?? 0
+      Object.keys(getGuildData(guildId).urls ?? {}).length ?? 0
     }. earliest: ${new Date(earliestMessage.timestamp).toISOString()}`
   );
 
