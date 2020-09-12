@@ -1,5 +1,8 @@
 # Ye olde link detector
 
+![Docker Image CI](https://github.com/dhedegaard/ye-olde-link-detector/workflows/Docker%20Image%20CI/badge.svg)
+![Deno](https://github.com/dhedegaard/ye-olde-link-detector/workflows/Deno/badge.svg)
+
 A small discord bot for detecting when duplicte links are being posted.
 
 ## I want to use the bot, without setting up anything:
