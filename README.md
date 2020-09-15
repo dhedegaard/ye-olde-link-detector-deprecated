@@ -15,8 +15,12 @@ The permissions requested are required for the bot to work correctly.
 
 ## How to get it up and running.
 
-Run `main.ts` with `deno run --allow-net --allow-env`.
-
 You need a Discord bot token to run the bot.
 
-Set the token in a `TOKEN` env variable.
+Set your bot token in a `TOKEN` env variable.
+
+After that, run:
+
+```sh
+$ deno run --allow-net --allow-env --allow-read=. --allow-write=. main.ts
+```

@@ -1,4 +1,4 @@
-import { getGuildData } from "./data.ts";
+import { getGuildData, readExistingData, writeExistingData } from "./data.ts";
 import {
   botHasChannelPermissions,
   Channel,
@@ -17,6 +17,20 @@ const token = Deno.env.get("TOKEN");
 if (token == null) {
   throw new Error("TOKEN env variable not defined");
 }
+
+// Attempt to read existing data from disk.
+await readExistingData().catch((error) =>
+  console.warn("Error readonly old data from disk, because:", error)
+);
+
+// Periodically, try to write the current data to disk.
+setInterval(() => {
+  writeExistingData()
+    .then(() => console.log("Wrote current data to disk succesfully"))
+    .catch((error) =>
+      console.warn("Error writing current data to disk, because:", error)
+    );
+}, 60_000);
 
 console.log("Connecting...");
 await createClient({

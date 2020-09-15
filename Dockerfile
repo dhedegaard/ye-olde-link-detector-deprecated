@@ -1,4 +1,4 @@
-FROM hayd/deno:alpine-1.3.3
+FROM hayd/deno:alpine-1.4.0
 
 WORKDIR /app
 
@@ -7,7 +7,9 @@ RUN deno cache ./src/deps.ts
 
 COPY . .
 RUN deno cache ./main.ts && \
-  deno test && \
+  deno test -A && \
   deno lint --unstable
+
+VOLUME ["/app/data"]
 
 CMD ["deno", "run", "--allow-net", "--allow-env", "./main.ts"]

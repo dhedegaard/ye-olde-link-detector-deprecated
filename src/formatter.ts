@@ -1,5 +1,5 @@
 import { formatDistance } from "./deps.ts";
-import { processMessage } from "./process-message.ts";
+import type { processMessage } from "./process-message.ts";
 
 export const formatOutputMessage = ({
   userid,
