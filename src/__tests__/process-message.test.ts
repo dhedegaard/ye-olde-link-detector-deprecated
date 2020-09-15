@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.68.0/testing/asserts.ts";
 import { processMessage } from "../process-message.ts";
-import { Message } from "../deps.ts";
+import type { Message } from "../deps.ts";
 import { ChannelTypes } from "https://deno.land/x/discordeno@v8.4.1/src/types/channel.ts";
 import { clearData, getGuildData } from "../data.ts";
 
@@ -84,11 +84,12 @@ Deno.test(
       []
     );
     assertEquals(getGuildData("guild-id"), {
+      seenMessageIds: [],
       urls: {
         "http://example.com": [
           {
             messageid: fakeMessage.id,
-            timestamp: new Date(fakeMessage.timestamp),
+            timestamp: new Date(fakeMessage.timestamp).toISOString(),
             userid: "user-id",
             username: "fake-username",
           },
@@ -108,7 +109,7 @@ Deno.test(
       "http://example.com": [
         {
           messageid: "old-fake-message-id",
-          timestamp: oneYearAgo,
+          timestamp: oneYearAgo.toISOString(),
           userid: "user-id",
           username: "fake-username",
         },
@@ -124,7 +125,7 @@ Deno.test(
       {
         firstTimePosted: {
           messageid: "old-fake-message-id",
-          timestamp: new Date("2019-01-01T12:34:56.000Z"),
+          timestamp: new Date("2019-01-01T12:34:56.000Z").toISOString(),
           userid: "user-id",
           username: "fake-username",
         },
@@ -134,19 +135,20 @@ Deno.test(
       },
     ]);
     assertEquals(getGuildData("guild-id"), {
+      seenMessageIds: [],
       urls: {
         "http://example.com": [
           // The original message.
           {
             messageid: "old-fake-message-id",
-            timestamp: oneYearAgo,
+            timestamp: oneYearAgo.toISOString(),
             userid: "user-id",
             username: "fake-username",
           },
           // The new double posted message.
           {
             messageid: fakeMessage.id,
-            timestamp: new Date(fakeMessage.timestamp),
+            timestamp: new Date(fakeMessage.timestamp).toISOString(),
             userid: "user-id",
             username: "fake-username",
           },

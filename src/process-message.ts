@@ -1,5 +1,5 @@
 import { getGuildUrl } from "./data.ts";
-import { Message } from "./deps.ts";
+import type { Message } from "./deps.ts";
 import { findUrlsInMessage } from "./url-regex.ts";
 
 /**
@@ -18,7 +18,7 @@ export const processMessage = ({
   postCount: number;
   firstTimePosted: {
     username: string;
-    timestamp: Date;
+    timestamp: string;
   };
 }> => {
   const messagesToSend: ReturnType<typeof processMessage> = [];
@@ -36,8 +36,8 @@ export const processMessage = ({
     const urlData = getGuildUrl(guildID, url);
     // If the URL has already been sent, notify the caller.
     if (urlData.length > 0) {
-      const firstTimePosted = urlData.sort(
-        (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+      const firstTimePosted = urlData.sort((a, b) =>
+        a.timestamp.localeCompare(b.timestamp)
       )[0];
       messagesToSend.push({
         userid,
@@ -52,7 +52,7 @@ export const processMessage = ({
         messageid,
         userid,
         username,
-        timestamp: new Date(timestamp),
+        timestamp: new Date(timestamp).toISOString(),
       });
     }
   }

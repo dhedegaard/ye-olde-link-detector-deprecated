@@ -11,6 +11,6 @@ export const formatOutputMessage = ({
     firstTimePosted.username
   }**, **${formatDistance(
     new Date(),
-    firstTimePosted.timestamp,
+    new Date(firstTimePosted.timestamp),
     undefined
   )}** ago`;

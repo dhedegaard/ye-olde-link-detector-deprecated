@@ -6,6 +6,7 @@ type Data = {
     [guildID: string]:
       | undefined
       | {
+          seenMessageIds: string[];
           urls: {
             [url: string]:
               | undefined
@@ -13,7 +14,8 @@ type Data = {
                   messageid: string;
                   username: string;
                   userid: string;
-                  timestamp: Date;
+                  /** iso8601 */
+                  timestamp: string;
                 }>;
           };
         };
@@ -34,7 +36,7 @@ export const clearData = () => {
 
 export const getGuildData = (guildId: string): GuildData => {
   if (data.guilds[guildId] == null) {
-    data.guilds[guildId] = { urls: {} };
+    data.guilds[guildId] = { urls: {}, seenMessageIds: [] };
   }
   return data.guilds[guildId]!;
 };
@@ -67,11 +69,21 @@ export const filterMissingMessageIds = (
   guildId: string,
   messageIds: string[]
 ): string[] => {
-  const guildData = getGuildData(guildId);
-  const knownMessageIds = new Set<string>(
-    Object.values(guildData.urls).flatMap(
-      (urlValue) => urlValue?.map(({ messageid }) => messageid) ?? []
-    )
-  );
+  const knownMessageIds = new Set<string>(getGuildData(guildId).seenMessageIds);
   return messageIds.filter((id) => !knownMessageIds.has(id));
+};
+
+/**
+ * @returns The number of messageIds now marked as seen.
+ */
+export const markMessageIdsSeen = (
+  guildId: string,
+  messageIds: string[]
+): number => {
+  const { seenMessageIds } = getGuildData(guildId);
+  // Might be a bit slow?
+  const set = new Set(seenMessageIds);
+  return messageIds
+    .filter((id) => !set.has(id))
+    .map((id) => seenMessageIds.push(id)).length;
 };

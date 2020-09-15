@@ -1,4 +1,10 @@
-import { getGuildData, readExistingData, writeExistingData } from "./data.ts";
+import {
+  filterMissingMessageIds,
+  getGuildData,
+  markMessageIdsSeen,
+  readExistingData,
+  writeExistingData,
+} from "./data.ts";
 import {
   botHasChannelPermissions,
   Channel,
@@ -89,12 +95,31 @@ const processMessagesForChannel = async (
     channel,
     beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
   );
-  if (messages == null || messages.length === 0) {
+
+  // Determine what messageIds we haven't seen before.
+  const unknownMessageIds = filterMissingMessageIds(
+    guildId,
+    messages?.map(({ id }) => id) ?? []
+  );
+  if (
+    messages == null ||
+    messages.length === 0 ||
+    unknownMessageIds.length === 0
+  ) {
     return;
   }
+
+  // There are at least some new messages, process them.
   for (const message of messages) {
     processMessage(message);
   }
+
+  // Mark all the processed message as seen.
+  markMessageIdsSeen(
+    guildId,
+    messages.map(({ id }) => id)
+  );
+
   const earliestMessage = messages.sort((a, b) => a.timestamp - b.timestamp)[0];
   console.log(
     `    Now processed channel(${channel.name}) messages. URLs found: ${
