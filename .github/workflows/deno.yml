@@ -36,7 +36,7 @@ jobs:
         run: deno cache main.ts
 
       - name: Run Tests
-        run: deno test -A --unstable
+        run: deno test -A
 
       - name: Run Linter
         run: deno lint --unstable
