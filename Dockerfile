@@ -12,4 +12,4 @@ RUN deno cache ./main.ts && \
 
 VOLUME ["/app/data"]
 
-CMD ["deno", "run", "--allow-net", "--allow-env", "./main.ts"]
+CMD ["deno", "run", "--allow-net", "--allow-env", "--allow-read=.", "--allow-write=.", "./main.ts"]
