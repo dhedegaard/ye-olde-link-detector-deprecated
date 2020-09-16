@@ -17,6 +17,7 @@ import {
   sendMessage,
 } from "./deps.ts";
 import { formatOutputMessage } from "./formatter.ts";
+import { heartbeatReceived } from "./heartbeat-monitor.ts";
 import { processMessage } from "./process-message.ts";
 
 const token = Deno.env.get("TOKEN");
@@ -57,7 +58,7 @@ await createClient({
       processChannelsForGuildLoaded(guild);
     },
     heartbeat() {
-      console.log("heartbeat");
+      heartbeatReceived();
     },
   },
 });
