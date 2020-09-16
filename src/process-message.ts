@@ -9,7 +9,7 @@ import { findUrlsInMessage } from "./url-regex.ts";
 export const processMessage = ({
   id: messageid,
   timestamp,
-  author: { bot, id: userid, username },
+  author,
   content,
   guildID,
 }: Message): Array<{
@@ -22,7 +22,7 @@ export const processMessage = ({
   };
 }> => {
   const messagesToSend: ReturnType<typeof processMessage> = [];
-  if (bot) {
+  if (author.bot) {
     // Skip messages from bots.
     return messagesToSend;
   }
@@ -40,7 +40,7 @@ export const processMessage = ({
         a.timestamp.localeCompare(b.timestamp)
       )[0];
       messagesToSend.push({
-        userid,
+        userid: author.id,
         url,
         postCount: urlData.length,
         firstTimePosted,
@@ -50,8 +50,8 @@ export const processMessage = ({
     if (!urlData.some((e) => messageid === e.messageid)) {
       urlData.push({
         messageid,
-        userid,
-        username,
+        userid: author.id,
+        username: author.username,
         timestamp: new Date(timestamp).toISOString(),
       });
     }
