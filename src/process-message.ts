@@ -2,6 +2,13 @@ import { getGuildUrl } from "./data.ts";
 import type { Message } from "./deps.ts";
 import { findUrlsInMessage } from "./url-regex.ts";
 
+type Result = Array<{
+  userid: string;
+  url: string;
+  postCount: number;
+  firstTimePosted: { username: string; timestamp: string };
+}>;
+
 /**
  * Processes a given message, returning an array of message objects to send
  * due to duplicate URLs.
@@ -12,15 +19,7 @@ export const processMessage = ({
   author,
   content,
   guildID,
-}: Message): Array<{
-  userid: string;
-  url: string;
-  postCount: number;
-  firstTimePosted: {
-    username: string;
-    timestamp: string;
-  };
-}> => {
+}: Message): Result => {
   const messagesToSend: ReturnType<typeof processMessage> = [];
   if (author.bot) {
     // Skip messages from bots.
