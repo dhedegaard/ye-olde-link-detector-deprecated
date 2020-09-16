@@ -7,7 +7,7 @@ export const formatOutputMessage = ({
   postCount,
   firstTimePosted,
 }: ReturnType<typeof processMessage>[number]) =>
-  `🚨🚨🚨**OLD**🚨🚨🚨: <@!${userid}> The URL: <${url}> has previous been posted **${postCount}** time(s) before. 🚨🚨🚨 It was first posted by **${
+  `🚨🚨🚨**OLD**🚨🚨🚨: <@!${userid}> The URL: <${url}> has previously been posted **${postCount}** time(s) before. 🚨🚨🚨 It was first posted by **${
     firstTimePosted.username
   }**, **${formatDistance(
     new Date(),
