@@ -30,3 +30,14 @@ Deno.test(
     );
   }
 );
+
+Deno.test("it should not append v GET parameter, when there is not one", () => {
+  assertEquals(
+    urlTransformer("https://www.youtube.com/live"),
+    "https://www.youtube.com/live"
+  );
+  assertEquals(
+    urlTransformer("https://www.youtube.com/"),
+    "https://www.youtube.com/"
+  );
+});
