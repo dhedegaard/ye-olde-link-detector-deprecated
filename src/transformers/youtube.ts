@@ -3,7 +3,7 @@
  * the same way.
  */
 export const transformYoutube = (url: string): string => {
-  if (!url.includes("youtu.be") && !url.includes("youtube.com")) {
+  if (!url.includes("youtu.be/") && !url.includes("youtube.com/watch?")) {
     return url;
   }
   const obj = new URL(url);
@@ -15,7 +15,9 @@ export const transformYoutube = (url: string): string => {
     params.set("v", videoId);
   }
   const newParams = new URLSearchParams();
-  newParams.set("v", params.get("v")!);
+  if (params.has("v")) {
+    newParams.set("v", params.get("v")!);
+  }
   obj.search = `?${newParams.toString()}`;
   return obj.toString();
 };
