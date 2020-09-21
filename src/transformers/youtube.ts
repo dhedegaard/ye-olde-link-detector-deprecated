@@ -19,8 +19,12 @@ export const transformYoutube = (url: string): string => {
   }
   // Implicitly, remove any GET parameters not being "v".
   const newParams = new URLSearchParams();
-  if (params.has("v")) {
-    newParams.set("v", params.get("v")!);
+  let videoId = params.get("v");
+  if (videoId != null) {
+    if (videoId.includes("?")) {
+      videoId = videoId.slice(0, videoId.indexOf("?"));
+    }
+    newParams.set("v", videoId);
   }
   obj.search = `?${newParams.toString()}`;
   return obj.toString();

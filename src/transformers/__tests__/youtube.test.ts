@@ -41,3 +41,13 @@ Deno.test("it should not append v GET parameter, when there is not one", () => {
     "https://www.youtube.com/"
   );
 });
+
+Deno.test(
+  "It should remove any excessive invalid questionmarks in the videoId",
+  () => {
+    assertEquals(
+      urlTransformer("https://www.youtube.com/watch?v=81GDlmDa-uQ?hejsa"),
+      "https://www.youtube.com/watch?v=81GDlmDa-uQ"
+    );
+  }
+);
