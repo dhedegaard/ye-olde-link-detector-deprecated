@@ -1,3 +1,4 @@
+import { processCommands } from "./commands/mod.ts";
 import {
   filterMissingMessageIds,
   getGuildData,
@@ -15,6 +16,7 @@ import {
   Intents,
   Permissions,
   sendMessage,
+  botID,
 } from "./deps.ts";
 import { formatOutputMessage } from "./formatter.ts";
 import { heartbeatReceived } from "./heartbeat-monitor.ts";
@@ -45,9 +47,10 @@ await createClient({
   intents: [Intents.GUILDS, Intents.GUILD_MESSAGES],
   eventHandlers: {
     ready() {
-      console.log("Connected!");
+      console.log("Connected as:", botID);
     },
     messageCreate(message) {
+      processCommands(botID, message);
       for (const messageToSend of processMessage(message)) {
         sendMessage(message.channel, {
           content: formatOutputMessage(messageToSend),
