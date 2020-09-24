@@ -2,13 +2,15 @@ import type { Channel, Message, UserPayload } from "../deps.ts";
 import help from "./help.ts";
 import unknown from "./unknown.ts";
 
-export type Command = (args: {
+export type Command = ((args: {
   args: string[];
   author: UserPayload;
   channel: Channel;
-}) => void;
+}) => void) & {
+  description?: string;
+};
 
-const commands: { [key: string]: Command } = {
+export const commands: { [key: string]: Command } = {
   help,
   unknown,
 };

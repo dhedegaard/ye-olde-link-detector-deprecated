@@ -1,8 +1,17 @@
 import { sendMessage } from "../deps.ts";
-import type { Command } from "./mod.ts";
+import { Command, commands } from "./mod.ts";
 
 const help: Command = ({ author, channel }) => {
-  sendMessage(channel, `<@${author.id}> TODO:`);
+  sendMessage(
+    channel,
+    `<@${author.id}> Available commands in the system:\n\n${Object.entries(
+      commands
+    )
+      .filter(([, func]) => func.description != null)
+      .map(([command, { description }]) => `- \`${command}\`: ${description}`)
+      .join("\n")}`
+  );
 };
+help.description = "Lists all the available commands";
 
 export default help;
