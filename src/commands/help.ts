@@ -8,7 +8,7 @@ const help: Command = ({ author, channel }) => {
       commands
     )
       .filter(([, func]) => func.description != null)
-      .map(([command, { description }]) => `- \`${command}\`: ${description}`)
+      .map(([command, { description }]) => `- \`!${command}\`: ${description}`)
       .join("\n")}`
   );
 };
