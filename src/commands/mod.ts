@@ -1,6 +1,7 @@
 import type { Channel, Message, UserPayload } from "../deps.ts";
 import help from "./help.ts";
 import unknown from "./unknown.ts";
+import stats from "./stats.ts";
 
 export type Command = ((args: {
   args: string[];
@@ -13,6 +14,7 @@ export type Command = ((args: {
 export const commands: { [key: string]: Command } = {
   help,
   unknown,
+  stats,
 };
 
 export const processCommands = (botId: string, message: Message) => {
