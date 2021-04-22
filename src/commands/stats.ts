@@ -9,7 +9,7 @@ const stats: Command = ({ channel, author }) => {
   const data = getGuildData(channel.guildID);
   const message = Object.entries(
     Object.values(data.urls)
-      .filter((e) => e != null)
+      .filter((e): e is NonNullable<typeof e> => e != null)
       .reduce<{ [username: string]: number }>((agg, obj) => {
         obj?.forEach(({ username }) => {
           if (agg[username] == null) {
@@ -25,7 +25,7 @@ const stats: Command = ({ channel, author }) => {
     .slice(0, 10)
     .join("\n");
   sendMessage(
-    channel,
+    channel.id,
     `<@${author.id}> The 10 people who posted the most links:\n${message}`
   );
 };
