@@ -81,7 +81,12 @@ const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
 
     // Fetch all the messages recursive, or fail loudly.
     await processMessagesForChannel(id, channel, undefined).catch((error) => {
-      console.error("Error reading messages from channel with id:", channelId);
+      console.error(
+        "Error reading messages from channel with id:",
+        channelId,
+        "name:",
+        channel.name
+      );
       console.error(error);
     });
     console.log("      Done building data for server:", name);
