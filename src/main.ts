@@ -10,11 +10,10 @@ import {
   botHasChannelPermissions,
   Channel,
   ChannelTypes,
-  createClient,
+  startBot,
   getMessages,
   Guild,
   Intents,
-  Permissions,
   sendMessage,
   botID,
 } from "./deps.ts";
@@ -42,7 +41,7 @@ setInterval(() => {
 }, 60_000);
 
 console.log("Connecting...");
-await createClient({
+await startBot({
   token: token,
   intents: [Intents.GUILDS, Intents.GUILD_MESSAGES],
   eventHandlers: {
@@ -52,7 +51,7 @@ await createClient({
     messageCreate(message) {
       processCommands(botID, message);
       for (const messageToSend of processMessage(message)) {
-        sendMessage(message.channel, {
+        sendMessage(message.channelID, {
           content: formatOutputMessage(messageToSend),
         });
       }
@@ -73,8 +72,8 @@ const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
     if (
       channel.type !== ChannelTypes.GUILD_TEXT ||
       !botHasChannelPermissions(channelId, [
-        Permissions.READ_MESSAGE_HISTORY,
-        Permissions.VIEW_CHANNEL,
+        "READ_MESSAGE_HISTORY",
+        "VIEW_CHANNEL",
       ])
     ) {
       continue;
@@ -82,7 +81,12 @@ const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
 
     // Fetch all the messages recursive, or fail loudly.
     await processMessagesForChannel(id, channel, undefined).catch((error) => {
-      console.error("Error reading messages from channel with id:", channelId);
+      console.error(
+        "Error reading messages from channel with id:",
+        channelId,
+        "name:",
+        channel.name
+      );
       console.error(error);
     });
     console.log("      Done building data for server:", name);
@@ -96,7 +100,7 @@ const processMessagesForChannel = async (
   beforeId: string | undefined
 ) => {
   const messages = await getMessages(
-    channel,
+    channel.id,
     beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
   );
 

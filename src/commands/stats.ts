@@ -2,14 +2,11 @@ import { getGuildData } from "../data.ts";
 import { sendMessage } from "../deps.ts";
 import type { Command } from "./mod.ts";
 
-const stats: Command = ({ channel, author }) => {
-  if (channel.guildID == null) {
-    return;
-  }
-  const data = getGuildData(channel.guildID);
+const stats: Command = ({ channelID, guildID, author }) => {
+  const data = getGuildData(guildID);
   const message = Object.entries(
     Object.values(data.urls)
-      .filter((e) => e != null)
+      .filter((e): e is NonNullable<typeof e> => e != null)
       .reduce<{ [username: string]: number }>((agg, obj) => {
         obj?.forEach(({ username }) => {
           if (agg[username] == null) {
@@ -25,7 +22,7 @@ const stats: Command = ({ channel, author }) => {
     .slice(0, 10)
     .join("\n");
   sendMessage(
-    channel,
+    channelID,
     `<@${author.id}> The 10 people who posted the most links:\n${message}`
   );
 };
