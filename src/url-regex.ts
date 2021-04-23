@@ -4,7 +4,7 @@ const regex = /(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:
 
 export const findUrlsInMessage = (message: string): string[] => {
   let match: RegExpExecArray | null;
-  let result: string[] = [];
+  const result: string[] = [];
   while ((match = regex.exec(message)) != null) {
     match!.forEach((e) => {
       const transformedUrl = urlTransformer(e);
