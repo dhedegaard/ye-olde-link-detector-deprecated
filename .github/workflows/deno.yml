@@ -40,3 +40,6 @@ jobs:
 
       - name: Run Linter
         run: deno lint --unstable
+
+      - name: Run compile
+        run: deno compile --unstable -A ./main.ts
