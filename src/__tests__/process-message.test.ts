@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.68.0/testing/asserts.ts";
 import { processMessage } from "../process-message.ts";
 import type { Message } from "../deps.ts";
-import { ChannelTypes } from "https://deno.land/x/discordeno@v8.4.1/src/types/channel.ts";
+import { ChannelTypes } from "../deps.ts";
 import { clearData, getGuildData } from "../data.ts";
 
 const fakeMessage: Message = {
@@ -15,15 +15,13 @@ const fakeMessage: Message = {
     discriminator: "test",
   },
   attachments: [],
+  // @ts-expect-error - Ignore unneeded fields.
   channel: {
     guildID: "guild-id",
     id: "channel-id",
-    lastMessageID: null,
     lastPinTimestamp: undefined,
     mention: "",
     nsfw: true,
-    parentID: null,
-    permissions: [],
     rateLimitPerUser: undefined,
     type: ChannelTypes.GUILD_TEXT,
     userLimit: undefined,
@@ -32,12 +30,15 @@ const fakeMessage: Message = {
   content: "test-content",
   editedTimestamp: undefined,
   embeds: [],
-  guild: () => undefined,
+  // @ts-expect-error - ignore unneeded fields.
+  guild: {},
   guildID: "guild-id",
-  member: () => undefined,
+  // @ts-expect-error - ignore unneeded fields.
+  member: {},
   mentionChannels: undefined,
   mentionRoles: [],
-  mentions: () => [],
+  // @ts-expect-error - ignore unneeded fields.
+  mentions: {},
   mentionsEveryone: false,
   messageReference: undefined,
   pinned: false,
