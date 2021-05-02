@@ -11,11 +11,14 @@ import {
   Channel,
   ChannelTypes,
   startBot,
-  getMessages,
   Guild,
   Intents,
   sendMessage,
   botID,
+  RequestManager,
+  endpoints,
+  MessageCreateOptions,
+  structures,
 } from "./deps.ts";
 import { formatOutputMessage } from "./formatter.ts";
 import { heartbeatReceived } from "./heartbeat-monitor.ts";
@@ -99,9 +102,19 @@ const processMessagesForChannel = async (
   channel: Channel,
   beforeId: string | undefined
 ) => {
-  const messages = await getMessages(
-    channel.id,
+  // const messages = await getMessages(
+  //   channel.id,
+  //   beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
+  // );
+
+  // A work around the getMessages, which has a bug that fails on a permission
+  // check.
+  const result = (await RequestManager.get(
+    endpoints.CHANNEL_MESSAGES(channel.id),
     beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
+  )) as MessageCreateOptions[];
+  const messages = await Promise.all(
+    result.map((res) => structures.createMessage(res))
   );
 
   // Determine what messageIds we haven't seen before.
