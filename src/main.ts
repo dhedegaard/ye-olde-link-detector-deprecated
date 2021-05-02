@@ -11,7 +11,6 @@ import {
   Channel,
   ChannelTypes,
   startBot,
-  getMessages,
   Guild,
   Intents,
   sendMessage,
