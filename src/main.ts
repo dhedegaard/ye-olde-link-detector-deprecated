@@ -8,7 +8,6 @@ import {
 } from "./data.ts";
 import { discord } from "./deps.ts";
 import { formatOutputMessage } from "./formatter.ts";
-import { heartbeatReceived } from "./heartbeat-monitor.ts";
 import { processMessage } from "./process-message.ts";
 
 const token = Deno.env.get("TOKEN");
@@ -51,9 +50,8 @@ await discord.startBot({
     guildLoaded(guild) {
       processChannelsForGuildLoaded(guild);
     },
-    // @ts-expect-error - TODO: Determine what to do here :O
-    heartbeat() {
-      heartbeatReceived();
+    guildAvailable(guild) {
+      processChannelsForGuildLoaded(guild);
     },
   },
 });
