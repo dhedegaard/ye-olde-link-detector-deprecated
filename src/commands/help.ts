@@ -1,9 +1,9 @@
-import { sendMessage } from "../deps.ts";
+import { discord } from "../deps.ts";
 import { Command, commands } from "./mod.ts";
 
-const help: Command = ({ author, channelID }) => {
-  sendMessage(
-    channelID,
+const help: Command = ({ author, channelId }) => {
+  discord.sendMessage(
+    channelId,
     `<@${author.id}> Available commands in the system:\n\n${Object.entries(
       commands
     )

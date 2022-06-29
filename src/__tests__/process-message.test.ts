@@ -1,29 +1,29 @@
 import { assertEquals } from "https://deno.land/std@0.68.0/testing/asserts.ts";
 import { processMessage } from "../process-message.ts";
-import type { Message } from "../deps.ts";
-import { ChannelTypes } from "../deps.ts";
+import { discord } from "../deps.ts";
 import { clearData, getGuildData } from "../data.ts";
 
-const fakeMessage: Message = {
-  id: "test-id",
+const fakeMessage: discord.DiscordenoMessage & { author: discord.User } = {
+  id: 1234n,
   timestamp: new Date("2020-01-01T12:34:56Z").getTime(),
+  authorId: 1212n,
   author: {
-    id: "user-id",
+    id: "1212",
     username: "fake-username",
     bot: false,
     avatar: null,
     discriminator: "test",
-  },
+  } as discord.User,
   attachments: [],
-  // @ts-expect-error - Ignore unneeded fields.
+  // @ts-expect-error - ignore unneeded fields.
   channel: {
-    guildID: "guild-id",
-    id: "channel-id",
+    guildId: 123n,
+    id: 12345n,
     lastPinTimestamp: undefined,
     mention: "",
     nsfw: true,
     rateLimitPerUser: undefined,
-    type: ChannelTypes.GUILD_TEXT,
+    type: discord.ChannelTypes.GuildText,
     userLimit: undefined,
   },
   channelID: "channel-id",
@@ -32,7 +32,7 @@ const fakeMessage: Message = {
   embeds: [],
   // @ts-expect-error - ignore unneeded fields.
   guild: {},
-  guildID: "guild-id",
+  guildId: 123n,
   // @ts-expect-error - ignore unneeded fields.
   member: {},
   mentionChannels: undefined,
@@ -84,14 +84,14 @@ Deno.test(
       }),
       []
     );
-    assertEquals(getGuildData("guild-id"), {
+    assertEquals(getGuildData("123"), {
       seenMessageIds: [],
       urls: {
         "http://example.com": [
           {
-            messageid: fakeMessage.id,
+            messageid: fakeMessage.id.toString(),
             timestamp: new Date(fakeMessage.timestamp).toISOString(),
-            userid: "user-id",
+            userid: "1212",
             username: "fake-username",
           },
         ],
@@ -106,7 +106,7 @@ Deno.test(
     clearData();
     const oneYearAgo = new Date(fakeMessage.timestamp);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    getGuildData(fakeMessage.guildID).urls = {
+    getGuildData(fakeMessage.guildId!.toString()).urls = {
       "http://example.com": [
         {
           messageid: "old-fake-message-id",
@@ -132,10 +132,10 @@ Deno.test(
         },
         postCount: 1,
         url: "http://example.com",
-        userid: "user-id",
+        userid: "1212",
       },
     ]);
-    assertEquals(getGuildData("guild-id"), {
+    assertEquals(getGuildData("123"), {
       seenMessageIds: [],
       urls: {
         "http://example.com": [
@@ -148,9 +148,9 @@ Deno.test(
           },
           // The new double posted message.
           {
-            messageid: fakeMessage.id,
+            messageid: fakeMessage.id.toString(),
             timestamp: new Date(fakeMessage.timestamp).toISOString(),
-            userid: "user-id",
+            userid: "1212",
             username: "fake-username",
           },
         ],

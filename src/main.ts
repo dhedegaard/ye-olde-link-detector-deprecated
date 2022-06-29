@@ -6,20 +6,7 @@ import {
   readExistingData,
   writeExistingData,
 } from "./data.ts";
-import {
-  botHasChannelPermissions,
-  Channel,
-  ChannelTypes,
-  startBot,
-  Guild,
-  Intents,
-  sendMessage,
-  botID,
-  RequestManager,
-  endpoints,
-  MessageCreateOptions,
-  structures,
-} from "./deps.ts";
+import { discord } from "./deps.ts";
 import { formatOutputMessage } from "./formatter.ts";
 import { heartbeatReceived } from "./heartbeat-monitor.ts";
 import { processMessage } from "./process-message.ts";
@@ -44,17 +31,17 @@ setInterval(() => {
 }, 60_000);
 
 console.log("Connecting...");
-await startBot({
+await discord.startBot({
   token: token,
-  intents: [Intents.GUILDS, Intents.GUILD_MESSAGES],
+  intents: [discord.Intents.Guilds, discord.Intents.GuildMessages],
   eventHandlers: {
     ready() {
-      console.log("Connected as:", botID);
+      console.log("Connected as:", discord.botId);
     },
     messageCreate(message) {
-      processCommands(botID, message);
+      processCommands(discord.botId.toString(), message);
       for (const messageToSend of processMessage(message)) {
-        sendMessage(message.channelID, {
+        discord.sendMessage(message.channelId, {
           content: formatOutputMessage(messageToSend),
         });
       }
@@ -62,19 +49,24 @@ await startBot({
     guildLoaded(guild) {
       processChannelsForGuildLoaded(guild);
     },
+    // @ts-expect-error - TODO: Determine what to do here :O
     heartbeat() {
       heartbeatReceived();
     },
   },
 });
 
-const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
+const processChannelsForGuildLoaded = async ({
+  name,
+  id,
+  channels,
+}: discord.Guild) => {
   console.log(`  Processing guild: ${name} (${id})`);
-  for (const [channelId, channel] of channels) {
+  for (const channel of channels ?? []) {
     // Make sure it's a text channel, and that we have the required permissions.
     if (
-      channel.type !== ChannelTypes.GUILD_TEXT ||
-      !botHasChannelPermissions(channelId, [
+      channel.type !== discord.ChannelTypes.GuildText ||
+      !discord.botHasChannelPermissions(BigInt(channel.id), [
         "READ_MESSAGE_HISTORY",
         "VIEW_CHANNEL",
       ])
@@ -86,7 +78,7 @@ const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
     await processMessagesForChannel(id, channel, undefined).catch((error) => {
       console.error(
         "Error reading messages from channel with id:",
-        channelId,
+        channel.id,
         "name:",
         channel.name
       );
@@ -99,28 +91,26 @@ const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
 /** Recursively processes messages for a given channel. */
 const processMessagesForChannel = async (
   guildId: string,
-  channel: Channel,
+  channel: discord.Channel,
   beforeId: string | undefined
 ) => {
-  // const messages = await getMessages(
-  //   channel.id,
-  //   beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
-  // );
-
   // A work around the getMessages, which has a bug that fails on a permission
   // check.
-  const result = (await RequestManager.get(
-    endpoints.CHANNEL_MESSAGES(channel.id),
-    beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
-  )) as MessageCreateOptions[];
+  const result = await discord.getMessages(
+    BigInt(channel.id),
+    beforeId != null ? { before: BigInt(beforeId), limit: 100 } : { limit: 100 }
+  );
   const messages = await Promise.all(
-    result.map((res) => structures.createMessage(res))
+    result.map(async (res) => ({
+      ...res,
+      author: await discord.getUser(res.authorId),
+    }))
   );
 
   // Determine what messageIds we haven't seen before.
   const unknownMessageIds = filterMissingMessageIds(
     guildId,
-    messages?.map(({ id }) => id) ?? []
+    messages?.map(({ id }) => id.toString()) ?? []
   );
   if (
     messages == null ||
@@ -138,7 +128,7 @@ const processMessagesForChannel = async (
   // Mark all the processed message as seen.
   markMessageIdsSeen(
     guildId,
-    messages.map(({ id }) => id)
+    messages.map(({ id }) => id.toString())
   );
 
   const earliestMessage = messages.sort((a, b) => a.timestamp - b.timestamp)[0];
@@ -148,5 +138,9 @@ const processMessagesForChannel = async (
     }. earliest: ${new Date(earliestMessage.timestamp).toISOString()}`
   );
 
-  await processMessagesForChannel(guildId, channel, earliestMessage.id);
+  await processMessagesForChannel(
+    guildId,
+    channel,
+    earliestMessage.id.toString()
+  );
 };
