@@ -61,12 +61,12 @@ Deno.test(
 Deno.test(
   "Should return an empty array if there are no URLs in the message",
   async () => {
-    // assertEquals(
-    await processMessage({
-      ...fakeMessage,
-    });
-    //   []
-    // );
+    assertEquals(
+      await processMessage({
+        ...fakeMessage,
+      }),
+      []
+    );
   }
 );
 
