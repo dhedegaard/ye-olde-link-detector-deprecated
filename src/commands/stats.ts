@@ -3,7 +3,7 @@ import { discord } from "../deps.ts";
 import type { Command } from "./mod.ts";
 
 const stats: Command = ({ channelId, guildId, author }) => {
-  const data = getGuildData(guildId);
+  const data = getGuildData(guildId.toString());
   const message = Object.entries(
     Object.values(data.urls)
       .filter((e): e is NonNullable<typeof e> => e != null)

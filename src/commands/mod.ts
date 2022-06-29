@@ -5,9 +5,9 @@ import stats from "./stats.ts";
 
 export type Command = ((args: {
   args: string[];
-  author: User;
+  author: discord.User;
   channelId: bigint;
-  guildId: string;
+  guildId: bigint;
 }) => void) & {
   description?: string;
 };
@@ -18,7 +18,7 @@ export const commands: { [key: string]: Command } = {
   stats,
 };
 
-export const processCommands = (
+export const processCommands = async (
   botId: string,
   message: discord.DiscordenoMessage
 ) => {
@@ -33,6 +33,7 @@ export const processCommands = (
     return;
   }
   const { authorId, channelId, guildId } = message;
+  const author = await discord.getUser(authorId);
 
   const parts =
     message.content?.split(" ").filter((e) => !e.startsWith("<@")) ?? [];
@@ -43,8 +44,8 @@ export const processCommands = (
     return commands.unknown({
       args: [],
       author,
-      channelId: BigInt(channelId),
-      guildId: BigInt(guildId),
+      channelId,
+      guildId,
     });
   }
 
@@ -64,6 +65,6 @@ export const processCommands = (
     args: parts.slice(firstCommandPartIndex + 1),
     author,
     channelId: BigInt(channelId),
-    guildID,
+    guildId,
   });
 };

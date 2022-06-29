@@ -2,28 +2,32 @@ import { getGuildUrl } from "./data.ts";
 import { discord } from "./deps.ts";
 import { findUrlsInMessage } from "./url-regex.ts";
 
-type Result = Array<{
+export type ProcessMessageResult = Array<{
   userid: string;
   url: string;
   postCount: number;
-  firstTimePosted: { username: string; timestamp: string };
+  firstTimePosted: {
+    messageid: string;
+    timestamp: string;
+    userid: string;
+    username: string;
+  };
 }>;
 
 /**
  * Processes a given message, returning an array of message objects to send
  * due to duplicate URLs.
  */
-export const processMessage = ({
+export const processMessage = async ({
   id: _messageid,
   timestamp,
   content,
   authorId,
-  author,
   guildId,
   isBot,
-}: discord.DiscordenoMessage & { author: discord.User }): Result => {
+}: discord.DiscordenoMessage): Promise<ProcessMessageResult> => {
   const messageid = _messageid.toString();
-  const messagesToSend: ReturnType<typeof processMessage> = [];
+  const messagesToSend: ProcessMessageResult = [];
   if (isBot || content == null || guildId == null) {
     // Skip useless stuff.
     return messagesToSend;
@@ -53,10 +57,15 @@ export const processMessage = ({
       urlData.push({
         messageid: messageid,
         userid: authorId.toString(),
-        username: author.username,
+        username: await _internal.getUsernameForUserId(authorId),
         timestamp: new Date(timestamp).toISOString(),
       });
     }
   }
   return messagesToSend;
 };
+
+const getUsernameForUserId = (userid: bigint) =>
+  discord.getUser(userid).then((e) => e.username);
+
+export const _internal = { getUsernameForUserId };

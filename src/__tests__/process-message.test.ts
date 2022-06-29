@@ -1,5 +1,9 @@
-import { assertEquals } from "https://deno.land/std@0.68.0/testing/asserts.ts";
-import { processMessage } from "../process-message.ts";
+import { assertEquals } from "https://deno.land/std@0.145.0/testing/asserts.ts";
+import {
+  stub,
+  assertSpyCall,
+} from "https://deno.land/std@0.145.0/testing/mock.ts";
+import { _internal, processMessage } from "../process-message.ts";
 import { discord } from "../deps.ts";
 import { clearData, getGuildData } from "../data.ts";
 
@@ -47,24 +51,18 @@ const fakeMessage: discord.DiscordenoMessage & { author: discord.User } = {
   webhookID: undefined,
 };
 
-Deno.test("Should return an empty array of the message is from a bot", () => {
-  assertEquals(
-    processMessage({
-      ...fakeMessage,
-      author: {
-        ...fakeMessage.author,
-        bot: true,
-      },
-    }),
-    []
-  );
-});
+Deno.test(
+  "Should return an empty array of the message is from a bot",
+  async () => {
+    assertEquals(await processMessage(fakeMessage), []);
+  }
+);
 
 Deno.test(
   "Should return an empty array if there are no URLs in the message",
-  () => {
+  async () => {
     // assertEquals(
-    processMessage({
+    await processMessage({
       ...fakeMessage,
     });
     //   []
@@ -74,87 +72,114 @@ Deno.test(
 
 Deno.test(
   "Should return an empty array, if there's an URL but it's the first time we see it and the guild.",
-  () => {
-    clearData();
-
-    assertEquals(
-      processMessage({
-        ...fakeMessage,
-        content: "Some url: http://example.com",
-      }),
-      []
+  async () => {
+    const getUsernameForUserIdStub = stub(
+      _internal,
+      "getUsernameForUserId",
+      () => Promise.resolve("stubbed-author-response")
     );
-    assertEquals(getGuildData("123"), {
-      seenMessageIds: [],
-      urls: {
-        "http://example.com": [
-          {
-            messageid: fakeMessage.id.toString(),
-            timestamp: new Date(fakeMessage.timestamp).toISOString(),
-            userid: "1212",
-            username: "fake-username",
-          },
-        ],
-      },
-    });
+
+    try {
+      clearData();
+
+      assertEquals(
+        await processMessage({
+          ...fakeMessage,
+          content: "Some url: http://example.com",
+        }),
+        []
+      );
+      assertEquals(getGuildData("123"), {
+        seenMessageIds: [],
+        urls: {
+          "http://example.com": [
+            {
+              messageid: fakeMessage.id.toString(),
+              timestamp: new Date(fakeMessage.timestamp).toISOString(),
+              userid: "1212",
+              username: "stubbed-author-response",
+            },
+          ],
+        },
+      });
+      assertSpyCall(getUsernameForUserIdStub, 0, {
+        args: [1212n],
+      });
+    } finally {
+      getUsernameForUserIdStub.restore();
+    }
   }
 );
 
 Deno.test(
   "Should return an element in the array, when an existing URL is encountered.",
-  () => {
-    clearData();
-    const oneYearAgo = new Date(fakeMessage.timestamp);
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    getGuildData(fakeMessage.guildId!.toString()).urls = {
-      "http://example.com": [
-        {
-          messageid: "old-fake-message-id",
-          timestamp: oneYearAgo.toISOString(),
-          userid: "user-id",
-          username: "fake-username",
-        },
-      ],
-    };
+  async () => {
+    const getUsernameForUserIdStub = stub(
+      _internal,
+      "getUsernameForUserId",
+      () => Promise.resolve("stubbed-author-response")
+    );
 
-    const result = processMessage({
-      ...fakeMessage,
-      content: "Some url: http://example.com",
-    });
-
-    assertEquals(result, [
-      {
-        firstTimePosted: {
-          messageid: "old-fake-message-id",
-          timestamp: new Date("2019-01-01T12:34:56.000Z").toISOString(),
-          userid: "user-id",
-          username: "fake-username",
-        },
-        postCount: 1,
-        url: "http://example.com",
-        userid: "1212",
-      },
-    ]);
-    assertEquals(getGuildData("123"), {
-      seenMessageIds: [],
-      urls: {
+    try {
+      clearData();
+      const oneYearAgo = new Date(fakeMessage.timestamp);
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      getGuildData(fakeMessage.guildId!.toString()).urls = {
         "http://example.com": [
-          // The original message.
           {
             messageid: "old-fake-message-id",
             timestamp: oneYearAgo.toISOString(),
             userid: "user-id",
             username: "fake-username",
           },
-          // The new double posted message.
-          {
-            messageid: fakeMessage.id.toString(),
-            timestamp: new Date(fakeMessage.timestamp).toISOString(),
-            userid: "1212",
+        ],
+      };
+
+      const result = await processMessage({
+        ...fakeMessage,
+        content: "Some url: http://example.com",
+      });
+
+      assertEquals(result, [
+        {
+          firstTimePosted: {
+            messageid: "old-fake-message-id",
+            timestamp: new Date("2019-01-01T12:34:56.000Z").toISOString(),
+            userid: "user-id",
             username: "fake-username",
           },
-        ],
-      },
-    });
+          postCount: 1,
+          url: "http://example.com",
+          userid: "1212",
+        },
+      ]);
+      assertEquals(getGuildData("123"), {
+        seenMessageIds: [],
+        urls: {
+          "http://example.com": [
+            // The original message.
+            {
+              messageid: "old-fake-message-id",
+              timestamp: oneYearAgo.toISOString(),
+              userid: "user-id",
+              username: "fake-username",
+            },
+            // The new double posted message.
+            {
+              messageid: fakeMessage.id.toString(),
+              timestamp: new Date(fakeMessage.timestamp).toISOString(),
+              userid: "1212",
+              username: "stubbed-author-response",
+            },
+          ],
+        },
+      });
+
+      assertSpyCall(getUsernameForUserIdStub, 0, {
+        args: [1212n],
+      });
+    } finally {
+      getUsernameForUserIdStub.restore();
+    }
   }
 );
