@@ -18,7 +18,7 @@ if (token == null) {
 
 // Attempt to read existing data from disk.
 await readExistingData().catch((error) =>
-  console.warn("Error readonly old data from disk, because:", error)
+  console.warn("Error reading old data from disk, because:", error)
 );
 
 // Periodically, try to write the current data to disk.
