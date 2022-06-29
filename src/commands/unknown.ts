@@ -1,8 +1,11 @@
-import { sendMessage } from "../deps.ts";
+import { discord } from "../deps.ts";
 import type { Command } from "./mod.ts";
 
-const unknown: Command = ({ author, channelID }) => {
-  sendMessage(channelID, `<@${author.id}> Unknown command, try \`!help\``);
+const unknown: Command = ({ author, channelId }) => {
+  discord.sendMessage(
+    channelId,
+    `<@${author.id}> Unknown command, try \`!help\``
+  );
 };
 
 export default unknown;

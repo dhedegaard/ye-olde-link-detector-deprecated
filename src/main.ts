@@ -6,22 +6,8 @@ import {
   readExistingData,
   writeExistingData,
 } from "./data.ts";
-import {
-  botHasChannelPermissions,
-  Channel,
-  ChannelTypes,
-  startBot,
-  Guild,
-  Intents,
-  sendMessage,
-  botID,
-  RequestManager,
-  endpoints,
-  MessageCreateOptions,
-  structures,
-} from "./deps.ts";
+import { discord } from "./deps.ts";
 import { formatOutputMessage } from "./formatter.ts";
-import { heartbeatReceived } from "./heartbeat-monitor.ts";
 import { processMessage } from "./process-message.ts";
 
 const token = Deno.env.get("TOKEN");
@@ -31,7 +17,7 @@ if (token == null) {
 
 // Attempt to read existing data from disk.
 await readExistingData().catch((error) =>
-  console.warn("Error readonly old data from disk, because:", error)
+  console.warn("Error reading old data from disk, because:", error)
 );
 
 // Periodically, try to write the current data to disk.
@@ -44,37 +30,43 @@ setInterval(() => {
 }, 60_000);
 
 console.log("Connecting...");
-await startBot({
+await discord.startBot({
   token: token,
-  intents: [Intents.GUILDS, Intents.GUILD_MESSAGES],
+  intents: [discord.Intents.Guilds, discord.Intents.GuildMessages],
   eventHandlers: {
     ready() {
-      console.log("Connected as:", botID);
+      console.log("Connected as:", discord.botId);
     },
     messageCreate(message) {
-      processCommands(botID, message);
-      for (const messageToSend of processMessage(message)) {
-        sendMessage(message.channelID, {
-          content: formatOutputMessage(messageToSend),
-        });
-      }
+      processCommands(discord.botId.toString(), message);
+      processMessage(message).then((messages) =>
+        messages.forEach((messageToSend) =>
+          discord.sendMessage(message.channelId, {
+            content: formatOutputMessage(messageToSend),
+          })
+        )
+      );
     },
     guildLoaded(guild) {
       processChannelsForGuildLoaded(guild);
     },
-    heartbeat() {
-      heartbeatReceived();
+    guildAvailable(guild) {
+      processChannelsForGuildLoaded(guild);
     },
   },
 });
 
-const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
+const processChannelsForGuildLoaded = async ({
+  name,
+  id,
+  channels,
+}: discord.DiscordenoGuild) => {
   console.log(`  Processing guild: ${name} (${id})`);
-  for (const [channelId, channel] of channels) {
+  for (const [, channel] of channels ?? []) {
     // Make sure it's a text channel, and that we have the required permissions.
     if (
-      channel.type !== ChannelTypes.GUILD_TEXT ||
-      !botHasChannelPermissions(channelId, [
+      channel.type !== discord.ChannelTypes.GuildText ||
+      !discord.botHasChannelPermissions(BigInt(channel.id), [
         "READ_MESSAGE_HISTORY",
         "VIEW_CHANNEL",
       ])
@@ -83,15 +75,17 @@ const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
     }
 
     // Fetch all the messages recursive, or fail loudly.
-    await processMessagesForChannel(id, channel, undefined).catch((error) => {
-      console.error(
-        "Error reading messages from channel with id:",
-        channelId,
-        "name:",
-        channel.name
-      );
-      console.error(error);
-    });
+    await processMessagesForChannel(id.toString(), channel, undefined).catch(
+      (error) => {
+        console.error(
+          "Error reading messages from channel with id:",
+          channel.id,
+          "name:",
+          channel.name
+        );
+        console.error(error);
+      }
+    );
     console.log("      Done building data for server:", name);
   }
 };
@@ -99,28 +93,20 @@ const processChannelsForGuildLoaded = async ({ name, id, channels }: Guild) => {
 /** Recursively processes messages for a given channel. */
 const processMessagesForChannel = async (
   guildId: string,
-  channel: Channel,
+  channel: discord.DiscordenoChannel,
   beforeId: string | undefined
 ) => {
-  // const messages = await getMessages(
-  //   channel.id,
-  //   beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
-  // );
-
   // A work around the getMessages, which has a bug that fails on a permission
   // check.
-  const result = (await RequestManager.get(
-    endpoints.CHANNEL_MESSAGES(channel.id),
-    beforeId != null ? { before: beforeId, limit: 100 } : { limit: 100 }
-  )) as MessageCreateOptions[];
-  const messages = await Promise.all(
-    result.map((res) => structures.createMessage(res))
+  const messages = await discord.getMessages(
+    BigInt(channel.id),
+    beforeId != null ? { before: BigInt(beforeId), limit: 100 } : { limit: 100 }
   );
 
   // Determine what messageIds we haven't seen before.
   const unknownMessageIds = filterMissingMessageIds(
     guildId,
-    messages?.map(({ id }) => id) ?? []
+    messages?.map(({ id }) => id.toString()) ?? []
   );
   if (
     messages == null ||
@@ -138,7 +124,7 @@ const processMessagesForChannel = async (
   // Mark all the processed message as seen.
   markMessageIdsSeen(
     guildId,
-    messages.map(({ id }) => id)
+    messages.map(({ id }) => id.toString())
   );
 
   const earliestMessage = messages.sort((a, b) => a.timestamp - b.timestamp)[0];
@@ -148,5 +134,9 @@ const processMessagesForChannel = async (
     }. earliest: ${new Date(earliestMessage.timestamp).toISOString()}`
   );
 
-  await processMessagesForChannel(guildId, channel, earliestMessage.id);
+  await processMessagesForChannel(
+    guildId,
+    channel,
+    earliestMessage.id.toString()
+  );
 };

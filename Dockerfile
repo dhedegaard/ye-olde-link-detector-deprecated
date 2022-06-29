@@ -1,4 +1,4 @@
-FROM hayd/deno:alpine-1.9.2
+FROM denoland/deno:alpine-1.23.1
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN deno cache ./src/deps.ts
 COPY . .
 RUN deno cache ./main.ts && \
   deno test -A && \
-  deno lint --unstable
+  deno lint
 
 VOLUME ["/app/data"]
 

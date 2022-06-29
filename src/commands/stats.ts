@@ -1,9 +1,9 @@
 import { getGuildData } from "../data.ts";
-import { sendMessage } from "../deps.ts";
+import { discord } from "../deps.ts";
 import type { Command } from "./mod.ts";
 
-const stats: Command = ({ channelID, guildID, author }) => {
-  const data = getGuildData(guildID);
+const stats: Command = ({ channelId, guildId, author }) => {
+  const data = getGuildData(guildId.toString());
   const message = Object.entries(
     Object.values(data.urls)
       .filter((e): e is NonNullable<typeof e> => e != null)
@@ -21,8 +21,8 @@ const stats: Command = ({ channelID, guildID, author }) => {
     .map(([username, count]) => `**${username}**: ${count}`)
     .slice(0, 10)
     .join("\n");
-  sendMessage(
-    channelID,
+  discord.sendMessage(
+    channelId,
     `<@${author.id}> The 10 people who posted the most links:\n${message}`
   );
 };
