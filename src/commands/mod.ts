@@ -2,6 +2,7 @@ import { discord } from "../deps.ts";
 import help from "./help.ts";
 import unknown from "./unknown.ts";
 import stats from "./stats.ts";
+import dumpData from "./dump-data.ts";
 
 export type Command = ((args: {
   args: string[];
@@ -16,6 +17,7 @@ export const commands: { [key: string]: Command } = {
   help,
   unknown,
   stats,
+  dumpData,
 };
 
 export const processCommands = async (
