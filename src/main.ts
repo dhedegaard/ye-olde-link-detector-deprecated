@@ -86,8 +86,8 @@ const processChannelsForGuildLoaded = async ({
         console.error(error);
       }
     );
-    console.log("      Done building data for server:", name);
   }
+  console.log("  Done building data for server:", name, id);
 };
 
 /** Recursively processes messages for a given channel. */
