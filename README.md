@@ -1,4 +1,4 @@
-# Ye olde link detector
+# Ye olde link detector (deprecated)
 
 ![Docker Image CI](https://github.com/dhedegaard/ye-olde-link-detector/workflows/Docker%20Image%20CI/badge.svg)
 ![Deno](https://github.com/dhedegaard/ye-olde-link-detector-deprecated/workflows/Deno/badge.svg)
